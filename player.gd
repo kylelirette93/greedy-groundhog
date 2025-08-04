@@ -1,9 +1,12 @@
 extends CharacterBody2D
 
 @onready var player_anim_controller: AnimationController = $AnimatedSprite2D
-@export var move_speed: float = 3200.0
+@export var move_speed: float = 3200
+@export var footstep_cooldown: float = 0.4
+var footstep_timer: float = 0.0
 
 func _physics_process(delta: float) -> void:
+	footstep_timer += delta
 	move_player(delta)
 
 func move_player(delta: float) -> void:
@@ -15,8 +18,13 @@ func move_player(delta: float) -> void:
 	velocity = movement_vector * move_speed * delta
 	update_animations(movement_vector) 
 	move_and_slide()
-	
+
 func update_animations(movement_vector: Vector2) -> void:
+	if footstep_timer >= footstep_cooldown:
+		if not $AudioStreamPlayer.playing:
+			if movement_vector.length() > 0:
+				$AudioStreamPlayer.play()
+		footstep_timer = 0.0 # Reset the timer
 	# Check for the idle state first. If the character is not moving,
 	# play the idle animation and exit the function.
 	if movement_vector.length() == 0:
